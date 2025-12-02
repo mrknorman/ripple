@@ -29,6 +29,8 @@ def get_inspiral_phase(fM_s: Array, theta: Array, coeffs: Array) -> Array:
     m2_s = m2 * gt
     M_s = m1_s + m2_s
     eta = m1_s * m2_s / (M_s**2.0)
+    # Clamp eta to 0.25 to avoid numerical issues for equal masses
+    eta = jnp.minimum(eta, 0.25)
 
     # First lets construct the phase in the inspiral (region I)
     m1M = m1_s / M_s
@@ -211,6 +213,8 @@ def get_inspiral_Amp(fM_s: Array, theta: Array, coeffs: Array) -> Array:
     m2_s = m2 * gt
     M_s = m1_s + m2_s
     eta = m1_s * m2_s / (M_s**2.0)
+    # Clamp eta to 0.25 to avoid numerical issues for equal masses
+    eta = jnp.minimum(eta, 0.25)
     eta2 = eta * eta
     eta3 = eta * eta2
 
@@ -522,6 +526,9 @@ def _gen_IMRPhenomD(
     coeffs: Array,
     f_ref: float,
 ):
+    # Clamp f to avoid singularities at f=0
+    f = jnp.maximum(f, 0.1)
+    
     M_s = (theta_intrinsic[0] + theta_intrinsic[1]) * gt
 
     # Shift phase so that peak amplitude matches t = 0
@@ -530,23 +537,24 @@ def _gen_IMRPhenomD(
     t0 = jax.grad(get_IIb_raw_phase)(f4 * M_s, theta_intrinsic, coeffs, f_RD, f_damp)
 
     # Lets call the amplitude and phase now
-    Psi = Phase(f, theta_intrinsic, coeffs, transition_freqs)
+    # We need to pass the reference frequency to the phase function
+    # to get the correct phase shift
     Mf_ref = f_ref * M_s
     Psi_ref = Phase(f_ref, theta_intrinsic, coeffs, transition_freqs)
+    
+    # DEBUG: Check Psi_ref
+    # jax.debug.print("DEBUG: f_ref: {}", f_ref)
+    # jax.debug.print("DEBUG: Psi_ref: {}", Psi_ref)
+    
+    Psi = Phase(f, theta_intrinsic, coeffs, transition_freqs)
     Psi -= t0 * ((f * M_s) - Mf_ref) + Psi_ref
     ext_phase_contrib = 2.0 * PI * f * theta_extrinsic[1] - 2 * theta_extrinsic[2]
     Psi += ext_phase_contrib
-    fcut_above = lambda f: (fM_CUT / M_s)
-    fcut_below = lambda f: f[jnp.abs(f - (fM_CUT / M_s)).argmin() - 1]
-    fcut_true = jax.lax.cond((fM_CUT / M_s) > f[-1], fcut_above, fcut_below, f)
-    # fcut_true = f[jnp.abs(f - (fM_CUT / M_s)).argmin() - 1]
-    Psi = Psi * jnp.heaviside(fcut_true - f, 0.0) + 2.0 * PI * jnp.heaviside(
-        f - fcut_true, 1.0
-    )
 
-    A = Amp(f, theta_intrinsic, coeffs, transition_freqs, D=theta_extrinsic[0])
+    # Calculate the amplitude
+    Amp_func = Amp(f, theta_intrinsic, coeffs, transition_freqs, D=theta_extrinsic[0])
 
-    h0 = A * jnp.exp(1j * -Psi)
+    h0 = Amp_func * jnp.exp(1j * -Psi)
     return h0
 
 

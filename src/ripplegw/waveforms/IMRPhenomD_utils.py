@@ -73,6 +73,9 @@ def get_fRD_fdamp(m1, m2, chi1, chi2):
     m2_s = m2 * gt
     M_s = m1_s + m2_s
     eta_s = m1_s * m2_s / (M_s**2.0)
+    # Clamp eta_s to 0.25 to avoid numerical issues for equal masses
+    eta_s = jnp.minimum(eta_s, 0.25)
+    
     S = (chi1 * m1_s**2 + chi2 * m2_s**2) / (M_s**2.0)
     # eta2 = eta_s * eta_s
     # eta3 = eta2 * eta_s
@@ -115,6 +118,10 @@ def get_transition_frequencies(
 
     # Amplitude transition frequencies
     f3 = 0.014 / (M * gt)
+    
+    # DEBUG: Check gamma2
+    jax.debug.print("DEBUG: gamma2: {}", gamma2)
+    
     f4_gammaneg_gtr_1 = lambda f_RD_, f_damp_, gamma3_, gamma2_: jnp.abs(
         f_RD_ + (-f_damp_ * gamma3_) / gamma2_
     )
@@ -142,7 +149,9 @@ def get_coeffs(theta: Array) -> Array:
     m2_s = m2 * gt
     M_s = m1_s + m2_s
     eta = m1_s * m2_s / (M_s**2.0)
-
+    # Clamp eta to 0.25 to avoid numerical issues for equal masses
+    eta = jnp.minimum(eta, 0.25)
+    
     # Definition of chiPN from lalsuite
     chi_s = (chi1 + chi2) / 2.0
     chi_a = (chi1 - chi2) / 2.0

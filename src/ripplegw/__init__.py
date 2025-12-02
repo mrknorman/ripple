@@ -31,6 +31,8 @@ def Mc_eta_to_ms(m):
         the component masses
     """
     Mchirp, eta = m
+    # Clamp eta to 0.25 to avoid numerical issues for equal masses
+    eta = jnp.minimum(eta, 0.25)
     M = Mchirp / (eta ** (3 / 5))
     m2 = (M - jnp.sqrt(M**2 - 4 * M**2 * eta)) / 2
     m1 = M - m2
