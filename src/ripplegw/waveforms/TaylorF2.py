@@ -277,8 +277,8 @@ def gen_TaylorF2(f: Array, params: Array, f_ref: float, use_lambda_tildes: bool 
     lambda tilde: Dimensionless tidal deformability first object [between 0 and 5000]
     delta lamda tilde: Dimensionless tidal deformability second object [between 0 and 5000]
     D: Luminosity distance to source [Mpc]
-    tc: Time of coalesence. This only appears as an overall linear in f contribution to the phase
-    phic: Phase of coalesence
+    tc: Time of coalescence. This only appears as an overall linear in f contribution to the phase
+    phic: Phase of coalescence
 
     f_ref: Reference frequency for the waveform
 
@@ -286,7 +286,7 @@ def gen_TaylorF2(f: Array, params: Array, f_ref: float, use_lambda_tildes: bool 
     --------
         h0 (array): Strain
     """
-    # Lets make this easier by starting in Mchirp and eta space
+    # Start in Mchirp and eta space
     m1, m2 = Mc_eta_to_ms(jnp.array([params[0], params[1]]))
     if use_lambda_tildes:
         lambda1, lambda2 = lambda_tildes_to_lambdas(
@@ -317,8 +317,8 @@ def gen_TaylorF2_hphc(
     lambda1: Dimensionless tidal deformability of the primary object [between 0 and 5000]
     lambda2: Dimensionless tidal deformability of the secondary object [between 0 and 5000]
     D: Luminosity distance to source [Mpc]
-    tc: Time of coalesence. This only appears as an overall linear in f contribution to the phase
-    phic: Phase of coalesence
+    tc: Time of coalescence. This only appears as an overall linear in f contribution to the phase
+    phic: Phase of coalescence
     inclination: Inclination angle of the binary [between 0 and PI]
 
     f_ref: Reference frequency for the waveform

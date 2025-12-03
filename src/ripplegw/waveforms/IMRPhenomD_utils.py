@@ -119,9 +119,6 @@ def get_transition_frequencies(
     # Amplitude transition frequencies
     f3 = 0.014 / (M * gt)
     
-    # DEBUG: Check gamma2
-    jax.debug.print("DEBUG: gamma2: {}", gamma2)
-    
     f4_gammaneg_gtr_1 = lambda f_RD_, f_damp_, gamma3_, gamma2_: jnp.abs(
         f_RD_ + (-f_damp_ * gamma3_) / gamma2_
     )
@@ -142,7 +139,9 @@ def get_transition_frequencies(
 
 @jax.jit
 def get_coeffs(theta: Array) -> Array:
-    # Retrives the coefficients needed to produce the waveform
+    """
+    Retrieves the coefficients needed to produce the waveform.
+    """
 
     m1, m2, chi1, chi2 = theta
     m1_s = m1 * gt
@@ -181,7 +180,7 @@ def get_coeffs(theta: Array) -> Array:
         )
     )
 
-    # FIXME: Change to dictionary lookup
+    # TODO: Change to dictionary lookup
     return coeff
 
 

@@ -349,7 +349,7 @@ def ComputeNNLOanglecoeffs(q, chil, chip):
 def FinalSpin_inplane(m1, m2, chi1_l, chi2_l, chip):
     M = m1 + m2
     eta = m1 * m2 / (M * M)
-    # Here I assume m1 > m2, the convention used in phenomD
+    # Assumes m1 > m2, the convention used in phenomD
     # (not the convention of internal phenomP)
     q_factor = m1 / M
     af_parallel = FinalSpin0815(eta, chi1_l, chi2_l)

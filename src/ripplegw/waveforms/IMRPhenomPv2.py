@@ -16,8 +16,7 @@ from .IMRPhenomD_utils import *
 def PhenomPCoreTwistUp(
     fHz,
     hPhenom,
-    # phase,
-    # Amp,
+
     eta,
     chi1_l,
     chi2_l,
@@ -31,7 +30,7 @@ def PhenomPCoreTwistUp(
     assert angcoeffs is not None
     assert Y2m is not None
 
-    # here it is used to be LAL_MTSUN_SI
+    # Previously LAL_MTSUN_SI
     f = fHz * gt * M  # Frequency in geometric units
     q = (1.0 + jnp.sqrt(1.0 - 4.0 * eta) - 2.0 * eta) / (2.0 * eta)
     m1 = 1.0 / (1.0 + q)  # Mass of the smaller BH for unit total mass M=1.
@@ -64,7 +63,7 @@ def PhenomPCoreTwistUp(
         + angcoeffs["epsiloncoeff5"] * omega_cbrt
     ) - epsilonoffset
 
-    # print("alpha, epsilon: ", alpha, epsilon)
+
     cBetah, sBetah = WignerdCoefficients(omega_cbrt, SL, eta, Sperp)
 
     cBetah2 = cBetah * cBetah
@@ -74,15 +73,7 @@ def PhenomPCoreTwistUp(
     sBetah3 = sBetah2 * sBetah
     sBetah4 = sBetah3 * sBetah
 
-    # d2 = jnp.array(
-    #     [
-    #         sBetah4,
-    #         2 * cBetah * sBetah3,
-    #         jnp.sqrt(6) * sBetah2 * cBetah2,
-    #         2 * cBetah3 * sBetah,
-    #         cBetah4,
-    #     ]
-    # )
+
     Y2mA = jnp.array(Y2m)  # need to pass Y2m in a 5-component list
     hp_sum = 0
     hc_sum = 0
@@ -123,8 +114,8 @@ def PhenomPOneFrequency(
     phic: Orbital phase at the peak of the underlying non precessing model (rad)
     M: Total mass (Solar masses)
     """
-    # These are the parametrs that go into the waveform generator
-    # Note that JAX does not give index errors, so if you pass in the
+    # Parameters for the waveform generator
+    # Note: JAX does not give index errors, so if you pass in the
     # the wrong array it will behave strangely
     norm = 2.0 * jnp.sqrt(5.0 / (64.0 * jnp.pi))
     theta_ripple = jnp.array([m1, m2, chi1, chi2])
@@ -135,7 +126,7 @@ def PhenomPOneFrequency(
     phase -= phic
     Amp = PhDAmp(fs, theta_ripple, coeffs, transition_freqs, D=dist_mpc) / norm
 
-    # phase -= 2. * phic; # line 1316 ???
+
     hPhenom = Amp * (jnp.exp(-1j * phase))
     return hPhenom, Dphi
 
@@ -151,7 +142,7 @@ def gen_IMRPhenomPv2(
     """
     m1, m2, s1x, s1y, s1z, s2x, s2y, s2z, dist_mpc, tc, phiRef, incl = theta
 
-    # flip m1 m2. For some reason LAL uses this convention for PhenomPv2
+    # Flip m1 m2. LAL uses this convention for PhenomPv2
     m1, m2 = m2, m1
     s1x, s2x = s2x, s1x
     s1y, s2y = s2y, s1y
@@ -223,8 +214,7 @@ def gen_IMRPhenomPv2(
     hp, hc = PhenomPCoreTwistUp(
         fs,
         hPhenomDs,
-        # phase,
-        # Amp,
+
         eta,
         chi1_l,
         chi2_l,
@@ -238,17 +228,15 @@ def gen_IMRPhenomPv2(
     # unpack transition_freqs
     _, _, _, _, f_RD, _ = transition_freqs
 
-    # phi_IIb = lambda f: PhenomPOneFrequency_phase(
-    #     f, m2, m1, chi2_l, chi1_l, chip, phiRef, M, dist_mpc
-    # )
+
     t0 = jax.grad(phi_IIb)(f_RD) / (2 * jnp.pi)
     phase_corr = jnp.cos(2 * jnp.pi * fs * (t0)) - 1j * jnp.sin(2 * jnp.pi * fs * (t0))
     M_s = (m1 + m2) * gt
-    phase_corr_tc = jnp.exp(-1j * fs * M_s * tc)
+    phase_corr_tc = jnp.exp(-1j * 2 * jnp.pi * fs * tc)
     hp *= phase_corr * phase_corr_tc
     hc *= phase_corr * phase_corr_tc
 
-    # final touches to hp and hc, stolen from Scott
+    # Final touches to hp and hc
     c2z = jnp.cos(2 * zeta_polariz)
     s2z = jnp.sin(2 * zeta_polariz)
     final_hp = c2z * hp + s2z * hc
@@ -258,7 +246,7 @@ def gen_IMRPhenomPv2(
 
 def gen_IMRPhenomPv2_hphc(f: Array, params: Array, f_ref: float):
     """
-    wrapper around gen_Pph but the first two parameters are Mc and eta
+    Wrapper around gen_Pph but the first two parameters are Mc and eta
     instead of m1 and m2
     """
     Mc = params[0]

@@ -214,7 +214,7 @@ def get_inspiral_phase(fM_s: Array, theta: Array, phase_coeffs: Array) -> Array:
     ) * PI ** (8.0 / 3.0)
 
     gpoints4 = jnp.array([0.0, 1.0 / 4.0, 3.0 / 4.0, 1.0])
-    # Note that they do not use 4.1 from 2001.11412, they actually use
+    # Note: they do not use 4.1 from 2001.11412, they actually use
     # (Cos(i PI / 3) + 1)/2
 
     _, _, fMs_MECO, _ = IMRPhenomX_utils.get_cutoff_fMs(m1, m2, chi1, chi2)
@@ -246,7 +246,7 @@ def get_inspiral_phase(fM_s: Array, theta: Array, phase_coeffs: Array) -> Array:
         + IMRPhenomX_utils.Uneqspin_CV(phase_coeffs[2, uneqspin_indx:], eta, S, chia)
     )
 
-    # NOTE: This CV_phase_Ins3 disagrees slightly with the value in WF4py at non-zero spin
+    # Note: This CV_phase_Ins3 disagrees slightly with the value in WF4py at non-zero spin
     CV_phase_Ins3 = (
         IMRPhenomX_utils.nospin_CV(phase_coeffs[3, 0:eqspin_indx], eta)
         + IMRPhenomX_utils.Eqspin_CV(phase_coeffs[3, eqspin_indx:uneqspin_indx], eta, S)
@@ -381,7 +381,7 @@ def get_intermediate_raw_phase(
     CV_phase_Int0 = dPhaseIN
     CV_phase_Int4 = dPhaseRD
 
-    # NOTE: This is different to WF4py and driving the difference in CV_phase_Int1
+    # Note: This is different to WF4py and driving the difference in CV_phase_Int1
     v2IMmRDv4 = (
         IMRPhenomX_utils.nospin_CV(phase_coeffs[4, 0:eqspin_indx], eta)
         + IMRPhenomX_utils.Eqspin_CV(
@@ -411,7 +411,7 @@ def get_intermediate_raw_phase(
         )
     )
 
-    # NOTE: This is different to WF4py and driving the difference in CV_phase_Int3
+    # Note: This is different to WF4py and driving the difference in CV_phase_Int3
     d43 = (
         IMRPhenomX_utils.nospin_CV(phase_coeffs[7, 0:eqspin_indx], eta)
         + IMRPhenomX_utils.Eqspin_CV(
@@ -723,7 +723,7 @@ def get_mergerringdown_raw_phase(
 def Phase(f: Array, theta: Array, phase_coeffs: Array) -> Array:
     """
     Computes the phase of the PhenomD waveform following 1508.07253.
-    Sets time and phase of coealence to be zero.
+    Sets time and phase of coalescence to be zero.
 
     Returns:
     --------
@@ -994,7 +994,7 @@ def get_inspiral_Amp(fM_s: Array, theta: Array, amp_coeffs: Array) -> Array:
 
     Amp_Ins = (
         A0
-        # A1 is missed since its zero
+        # A1 is missed since it is zero
         + A2 * (fM_s ** (2.0 / 3.0))
         + A3 * fM_s
         + A4 * (fM_s ** (4.0 / 3.0))
@@ -1375,14 +1375,14 @@ def gen_IMRPhenomXAS(f: Array, params: Array, f_ref: float):
     chi1: Dimensionless aligned spin of the primary object [between -1 and 1]
     chi2: Dimensionless aligned spin of the secondary object [between -1 and 1]
     D: Luminosity distance to source [Mpc]
-    tc: Time of coalesence. This only appears as an overall linear in f contribution to the phase
-    phic: Phase of coalesence
+    tc: Time of coalescence. This only appears as an overall linear in f contribution to the phase
+    phic: Phase of coalescence
 
     Returns:
     --------
       h0 (array): Complex gravitational wave strain
     """
-    # Lets make this easier by starting in Mchirp and eta space
+    # Start in Mchirp and eta space
     m1, m2 = Mc_eta_to_ms(jnp.array([params[0], params[1]]))
     theta_intrinsic = jnp.array([m1, m2, params[2], params[3]])
     theta_extrinsic = jnp.array([params[4], params[5], params[6]])
@@ -1405,8 +1405,8 @@ def gen_IMRPhenomXAS_hphc(f: Array, params: Array, f_ref: float):
     chi1: Dimensionless aligned spin of the primary object [between -1 and 1]
     chi2: Dimensionless aligned spin of the secondary object [between -1 and 1]
     D: Luminosity distance to source [Mpc]
-    tc: Time of coalesence. This only appears as an overall linear in f contribution to the phase
-    phic: Phase of coalesence
+    tc: Time of coalescence. This only appears as an overall linear in f contribution to the phase
+    phic: Phase of coalescence
     inclination: Inclination angle of the binary [between 0 and PI]
 
     f_ref: Reference frequency for the waveform

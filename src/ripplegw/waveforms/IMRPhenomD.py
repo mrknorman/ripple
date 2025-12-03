@@ -1,4 +1,4 @@
-# from math import pi
+
 
 import jax
 import jax.numpy as jnp
@@ -22,7 +22,7 @@ def get_inspiral_phase(fM_s: Array, theta: Array, coeffs: Array) -> Array:
     """
     Calculate the inspiral phase for the IMRPhenomD waveform.
     """
-    # First lets calculate some of the vairables that will be used below
+    # Calculate variables used below
     # Mass variables
     m1, m2, chi1, chi2 = theta
     m1_s = m1 * gt
@@ -32,7 +32,7 @@ def get_inspiral_phase(fM_s: Array, theta: Array, coeffs: Array) -> Array:
     # Clamp eta to 0.25 to avoid numerical issues for equal masses
     eta = jnp.minimum(eta, 0.25)
 
-    # First lets construct the phase in the inspiral (region I)
+    # Construct the phase in the inspiral (region I)
     m1M = m1_s / M_s
     m2M = m2_s / M_s
 
@@ -225,7 +225,7 @@ def get_inspiral_Amp(fM_s: Array, theta: Array, coeffs: Array) -> Array:
     chi12 = chi1 * chi1
     chi22 = chi2 * chi2
 
-    # First lets construct the Amplitude in the inspiral (region I)
+    # Construct the Amplitude in the inspiral (region I)
     A0 = 1.0
     A2 = ((-969.0 + 1804.0 * eta) * PI ** (2.0 / 3.0)) / 672.0
     A3 = (
@@ -315,7 +315,7 @@ def get_inspiral_Amp(fM_s: Array, theta: Array, coeffs: Array) -> Array:
 
     Amp_Ins = (
         A0
-        # A1 is missed since its zero
+        # A1 is missed since it is zero
         + A2 * (fM_s ** (2.0 / 3.0))
         + A3 * fM_s
         + A4 * (fM_s ** (4.0 / 3.0))
@@ -385,17 +385,17 @@ def get_IIb_Amp(fM_s: Array, theta: Array, coeffs: Array, f_RD, f_damp) -> Array
     return Amp_IIb
 
 
-# @jax.jit
+
 def Phase(f: Array, theta: Array, coeffs: Array, transition_freqs: Array) -> Array:
     """
     Computes the phase of the PhenomD waveform following 1508.07253.
-    Sets time and phase of coealence to be zero.
+    Sets time and phase of coalescence to be zero.
 
     Returns:
     --------
         phase (array): Phase of the GW as a function of frequency
     """
-    # First lets calculate some of the vairables that will be used below
+    # Calculate variables used below
     # Mass variables
     m1, m2, _, _ = theta
     m1_s = m1 * gt
@@ -408,13 +408,13 @@ def Phase(f: Array, theta: Array, coeffs: Array, transition_freqs: Array) -> Arr
 
     phi_Ins = get_inspiral_phase(f * M_s, theta, coeffs)
 
-    # Next lets construct the phase of the late inspiral (region IIa)
+    # Construct the phase of the late inspiral (region IIa)
     # beta0 is found by matching the phase between the region I and IIa
     # C(1) continuity must be preserved. We therefore need to solve for an additional
     # contribution to beta1
     # Note that derivatives seem to be d/d(fM_s), not d/df
 
-    # Here I've now defined
+    # Define:
     # phi_IIa(f1*M_s) + beta0 + beta1_correction*(f1*M_s) = phi_Ins(f1*M_s)
     # ==> phi_IIa'(f1*M_s) + beta1_correction = phi_Ins'(f1*M_s)
     # ==> beta1_correction = phi_Ins'(f1*M_s) - phi_IIa'(f1*M_s)
@@ -434,7 +434,7 @@ def Phase(f: Array, theta: Array, coeffs: Array, transition_freqs: Array) -> Arr
     )
     phi_IIa = phi_IIa_func(f * M_s) + beta0
 
-    # And finally, we do the same thing to get the phase of the merger-ringdown (region IIb)
+    # Calculate the phase of the merger-ringdown (region IIb)
     # phi_IIb(f2*M_s) + a0 + a1_correction*(f2*M_s) = phi_IIa(f2*M_s)
     # ==> phi_IIb'(f2*M_s) + a1_correction = phi_IIa'(f2*M_s)
     # ==> a1_correction = phi_IIa'(f2*M_s) - phi_IIb'(f2*M_s)
@@ -453,7 +453,7 @@ def Phase(f: Array, theta: Array, coeffs: Array, transition_freqs: Array) -> Arr
         + a1_correction * (f * M_s)
     )
 
-    # And now we can combine them by multiplying by a set of heaviside functions
+    # Combine them by multiplying by a set of heaviside functions
     phase = (
         phi_Ins * jnp.heaviside(f1 - f, 0.5)
         + jnp.heaviside(f - f1, 0.5) * phi_IIa * jnp.heaviside(f2 - f, 0.5)
@@ -463,7 +463,7 @@ def Phase(f: Array, theta: Array, coeffs: Array, transition_freqs: Array) -> Arr
     return phase
 
 
-# @jax.jit
+
 def Amp(
     f: Array, theta: Array, coeffs: Array, transition_frequencies: Array, D=1
 ) -> Array:
@@ -476,7 +476,7 @@ def Amp(
       Amplitude (array):
     """
 
-    # First lets calculate some of the vairables that will be used below
+    # Calculate variables used below
     # Mass variables
     m1, m2, _, _ = theta
     m1_s = m1 * gt
@@ -487,17 +487,17 @@ def Amp(
     # _, _, f3, f4, f_RD, f_damp = get_transition_frequencies(theta, coeffs[5], coeffs[6])
     _, _, f3, f4, f_RD, f_damp = transition_frequencies
 
-    # First we get the inspiral amplitude
+    # Get the inspiral amplitude
     Amp_Ins = get_inspiral_Amp(f * M_s, theta, coeffs)
 
-    # Next lets construct the phase of the late inspiral (region IIa)
-    # Note that this part is a little harder since we need to solve a system of equations for deltas
+    # Construct the phase of the late inspiral (region IIa)
+    # Note: this part requires solving a system of equations for deltas
     Amp_IIa = get_IIa_Amp(f * M_s, theta, coeffs, f3, f4, f_RD, f_damp)
 
-    # And finally, we construct the amplitude of the merger-ringdown (region IIb)
+    # Construct the amplitude of the merger-ringdown (region IIb)
     Amp_IIb = get_IIb_Amp(f * M_s, theta, coeffs, f_RD, f_damp)
 
-    # And now we can combine them by multiplying by a set of heaviside functions
+    # Combine them by multiplying by a set of heaviside functions
     fcut_above = lambda f: (fM_CUT / M_s)
     fcut_below = lambda f: f[jnp.abs(f - (fM_CUT / M_s)).argmin() - 1]
     fcut_true = jax.lax.cond((fM_CUT / M_s) > f[-1], fcut_above, fcut_below, f)
@@ -518,7 +518,7 @@ def Amp(
     return Amp0 * Amp * (M_s**2.0) / dist_s
 
 
-# @jax.jit
+
 def _gen_IMRPhenomD(
     f: Array,
     theta_intrinsic: Array,
@@ -536,15 +536,11 @@ def _gen_IMRPhenomD(
     _, _, _, f4, f_RD, f_damp = transition_freqs
     t0 = jax.grad(get_IIb_raw_phase)(f4 * M_s, theta_intrinsic, coeffs, f_RD, f_damp)
 
-    # Lets call the amplitude and phase now
+    # Calculate the amplitude and phase
     # We need to pass the reference frequency to the phase function
     # to get the correct phase shift
     Mf_ref = f_ref * M_s
     Psi_ref = Phase(f_ref, theta_intrinsic, coeffs, transition_freqs)
-    
-    # DEBUG: Check Psi_ref
-    # jax.debug.print("DEBUG: f_ref: {}", f_ref)
-    # jax.debug.print("DEBUG: Psi_ref: {}", Psi_ref)
     
     Psi = Phase(f, theta_intrinsic, coeffs, transition_freqs)
     Psi -= t0 * ((f * M_s) - Mf_ref) + Psi_ref
@@ -557,7 +553,6 @@ def _gen_IMRPhenomD(
     h0 = Amp_func * jnp.exp(1j * -Psi)
     return h0
 
-
 def gen_IMRPhenomD(f: Array, params: Array, f_ref: float):
     """
     Generate PhenomD frequency domain waveform following 1508.07253.
@@ -568,8 +563,8 @@ def gen_IMRPhenomD(f: Array, params: Array, f_ref: float):
     chi1: Dimensionless aligned spin of the primary object [between -1 and 1]
     chi2: Dimensionless aligned spin of the secondary object [between -1 and 1]
     D: Luminosity distance to source [Mpc]
-    tc: Time of coalesence. This only appears as an overall linear in f contribution to the phase
-    phic: Phase of coalesence
+    tc: Time of coalescence. This only appears as an overall linear in f contribution to the phase
+    phic: Phase of coalescence
 
     f_ref: Reference frequency for the waveform
 
@@ -577,7 +572,7 @@ def gen_IMRPhenomD(f: Array, params: Array, f_ref: float):
     --------
       h0 (array): Strain
     """
-    # Lets make this easier by starting in Mchirp and eta space
+    # Start in Mchirp and eta space
     m1, m2 = Mc_eta_to_ms(jnp.array([params[0], params[1]]))
     theta_intrinsic = jnp.array([m1, m2, params[2], params[3]])
     theta_extrinsic = jnp.array([params[4], params[5], params[6]])
@@ -597,8 +592,8 @@ def gen_IMRPhenomD_hphc(f: Array, params: Array, f_ref: float):
     chi1: Dimensionless aligned spin of the primary object [between -1 and 1]
     chi2: Dimensionless aligned spin of the secondary object [between -1 and 1]
     D: Luminosity distance to source [Mpc]
-    tc: Time of coalesence. This only appears as an overall linear in f contribution to the phase
-    phic: Phase of coalesence
+    tc: Time of coalescence. This only appears as an overall linear in f contribution to the phase
+    phic: Phase of coalescence
     inclination: Inclination angle of the binary [between 0 and PI]
 
     f_ref: Reference frequency for the waveform
